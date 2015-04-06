@@ -20,27 +20,39 @@ mkdir "${BASE_PATH}"
 docker export "${CONTAINER_NAME}" | sudo tar --preserve-permissions -C "${BASE_PATH}" -xf -
 rmdir "${BASE_PATH}"/{artifacts,resources}  # created by container volumes
 
-# ############################################
-# ## 
-# ############################################
-
-echo "Twiddling..."
-
-###
+############################################
+##
+############################################
 
 mkdir -p "${IMAGE_PATH}"/{casper,isolinux,install,preseed}
 
 sudo cp "${BASE_PATH}"/boot/vmlinuz-*-generic "${IMAGE_PATH}"/casper/vmlinuz
 sudo cp "${BASE_PATH}"/boot/initrd.img-*-generic "${IMAGE_PATH}"/casper/initrd.lz
-sudo cp /usr/lib/ISOLINUX/isolinux.bin "${IMAGE_PATH}"/isolinux/
 sudo cp /boot/memtest86+.bin "${IMAGE_PATH}"/install/memtest
 
 # TODO: Can we use this instead of our hacky preseeding?
 sudo touch "${IMAGE_PATH}"/preseed/ubuntu.seed
 
-# ldlinux is required since SYSLINUX v5.0; these other SYSLINUX modules are cribbed from Fedora's livecd creator:
-# https://git.fedorahosted.org/cgit/livecd/diff/imgcreate/?id=a267c4ab89ff97bcbad550b9ec331d5a0631d444&context=40&ignorews=0&ss=0
-sudo cp /usr/lib/syslinux/modules/bios/{ldlinux,libcom32,libutil}.c32 "${IMAGE_PATH}"/isolinux/
+# ############################################
+# ## ISOLINUX -- current version from installed host packages -- for Ubuntu 14.10, this is ISOLNUX 6.03 20141020
+# ############################################
+
+# sudo cp /usr/lib/ISOLINUX/isolinux.bin "${IMAGE_PATH}"/isolinux/
+
+# # ldlinux is required since SYSLINUX v5.0; these other SYSLINUX modules are cribbed from Fedora's livecd creator:
+# # https://git.fedorahosted.org/cgit/livecd/diff/imgcreate/?id=a267c4ab89ff97bcbad550b9ec331d5a0631d444&context=40&ignorews=0&ss=0
+# sudo cp /usr/lib/syslinux/modules/bios/{ldlinux,libcom32,libutil}.c32 "${IMAGE_PATH}"/isolinux/
+
+############################################
+## ISOLINUX -- legacy version 4.05 extracted from Xubuntu 14.10 desktop ISO
+############################################
+
+# isolinux.bin, chain.c32, gfxboot.c32, vesamenu.c32
+sudo cp data/isolinux/* "${IMAGE_PATH}"/isolinux/
+
+############################################
+## ISOLINUX -- configuration
+############################################
 
 sudo cat >"${IMAGE_PATH}"/isolinux/isolinux.txt <<EOF
 

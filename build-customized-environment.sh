@@ -16,17 +16,23 @@ mkdir -p "$ARTIFACTS_TMPDIR"
 # And this is where we make files available to those scripts.
 rm -rf "$RESOURCES_TMPDIR"
 mkdir -p "$RESOURCES_TMPDIR"
-cp _go.sh "$RESOURCES_TMPDIR"/_go.sh
-chmod +x "$RESOURCES_TMPDIR"/_go.sh
+cp -a customize.sh "$RESOURCES_TMPDIR"/customize.sh
+cp -a customize.d "$RESOURCES_TMPDIR"/customize.d
+# chmod +x "$RESOURCES_TMPDIR"/_go.sh
 
-# Could also put other dotfiles here.
-# XXX: Hardwired kelleyk (source username).
-mkdir -p "${RESOURCES_TMPDIR}"/home/"${USERNAME}"/.ssh
-cp -a ~kelleyk/.ssh/authorized_keys "${RESOURCES_TMPDIR}"/home/"${USERNAME}"/.ssh/
+#####################
+## Run user pre-customize scripts (on the host)
+#####################
 
+for SCRIPT_NAME in $(run-parts --test pre-customize.d); do
+    source "${SCRIPT_NAME}"
+done
 
-# Go!
-docker run -it --name "${CONTAINER_NAME}" -v "$ARTIFACTS_TMPDIR":/artifacts:rw -v "$RESOURCES_TMPDIR":/resources:ro "$DEBOOTSTRAP_IMAGE_TAG" /resources/_go.sh
+#####################
+## Go!
+#####################
+
+docker run -it --name "${CONTAINER_NAME}" -v "$ARTIFACTS_TMPDIR":/artifacts:rw -v "$RESOURCES_TMPDIR":/resources:ro "$DEBOOTSTRAP_IMAGE_TAG" /resources/customize.sh
 
 # Exit with the same exit code that the script in our container did.  docker-run exits with a zero
 # even if it fails, in which case we would otherwise happily report success.

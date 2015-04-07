@@ -21,6 +21,8 @@ export IMAGE_PATH="${IMAGE_PATH-$PWD/image}"
 export IMAGE_NAME="ubuntukk-livessh"  # volume name of .iso
 export OUTPUT_ISO_PATH="${PWD}/remix.iso"
 
+export IMAGE_RELEASE_NOTES_URL="http://example.com"
+
 export USERNAME=solid
 
 #####################

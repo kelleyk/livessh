@@ -21,7 +21,7 @@ docker export "${CONTAINER_NAME}" | sudo tar --preserve-permissions -C "${BASE_P
 rmdir "${BASE_PATH}"/{artifacts,resources}  # created by container volumes
 
 ############################################
-##
+## Copy base contents of image into working directory
 ############################################
 
 mkdir -p "${IMAGE_PATH}"/{casper,isolinux,install,preseed}
@@ -120,7 +120,7 @@ printf $(sudo du -sx --block-size=1 "${BASE_PATH}" | cut -f1) > "${IMAGE_PATH}"/
 ############################################
 
 cat >"${IMAGE_PATH}"/README.diskdefines <<EOF
-#define DISKNAME  UbuntuKK-LiveSSH
+#define DISKNAME  ${IMAGE_NAME}
 #define TYPE  binary
 #define TYPEbinary  1
 #define ARCH  amd64
@@ -139,8 +139,8 @@ touch "${IMAGE_PATH}"/ubuntu
 mkdir -p "${IMAGE_PATH}"/.disk
 touch "${IMAGE_PATH}"/.disk/base_installable
 echo "full_cd/single" > "${IMAGE_PATH}"/.disk/cd_type
-echo "UbuntuKK-LiveSSH" > "${IMAGE_PATH}"/.disk/info
-echo "http://example.com/" > "${IMAGE_PATH}"/.disk/release_notes_url
+echo "${IMAGE_NAME}" > "${IMAGE_PATH}"/.disk/info
+echo "${IMAGE_RELEASE_NOTES_URL}" > "${IMAGE_PATH}"/.disk/release_notes_url
 
 ############################################
 ## Calculate checksums

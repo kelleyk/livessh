@@ -181,12 +181,6 @@ EOF
 chmod +x /usr/share/initramfs-tools/scripts/casper-bottom/70kk-nfs-mount
 
 ############################################
-## Install optional software -- replace this with scripts.d
-############################################
-
-$APT_GET_INSTALL ipmitool
-
-############################################
 ## Enable serial console on ttyS0
 ############################################
 
@@ -213,6 +207,7 @@ stop on runlevel [!12345]
 respawn
 exec /sbin/getty -L 115200 ${SERIAL_TERMINAL} vt102
 EOF
+done
 
 ############################################
 ##
@@ -245,6 +240,14 @@ dpkg-reconfigure -f noninteractive tzdata
 #
 # rm list.txt
 ####
+
+#####################
+## Run user customize scripts (in the target environment)
+#####################
+
+for SCRIPT_NAME in $(run-parts --test /resources/customize.d); do
+    source "${SCRIPT_NAME}"
+done
 
 ############################################
 ## Repair the configuration changes that docker's debootstrap makes
@@ -291,3 +294,4 @@ update-initramfs -c -k all
 ############################################
 
 dpkg-query -W --showformat='${Package} ${Version}\n' | tee /artifacts/filesystem.manifest > /dev/null
+

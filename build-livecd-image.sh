@@ -75,6 +75,7 @@ LABEL live
   kernel /casper/vmlinuz
 #  append  file=/cdrom/preseed/ubuntu.seed boot=casper initrd=/casper/initrd.lz quiet splash --
   append  file=/cdrom/preseed/ubuntu.seed boot=casper initrd=/casper/initrd.lz --
+#  append  file=/cdrom/preseed/ubuntu.seed boot=casper initrd=/casper/initrd.lz console=tty0 console=hvc0,115200n8 console=ttyS0,115200n8 --
 # LABEL check
 #   menu label ^Check CD for defects
 #   kernel /casper/vmlinuz

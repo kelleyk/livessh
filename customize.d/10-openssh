@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+############################################
+## OpenSSH server & hostkeys
+############################################
+
+$APT_GET_INSTALL openssh-server
+rm -f /etc/ssh/ssh_host_*_key*
+# N.B.: The keys are *not* automatically regenerated!
+cat >/etc/rc2.d/S99firstboot_generate-ssh-keys <<EOF
+#!/bin/bash
+
+ssh-keygen -A && rm /etc/rc5.d/S99firstboot_generate-ssh-keys
+EOF
+chmod +x /etc/rc2.d/S99firstboot_generate-ssh-keys
+

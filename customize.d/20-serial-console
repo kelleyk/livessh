@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+############################################
+## Enable serial console on ttyS0
+############################################
+
+# You also need to edit the PXE configuration (and/or perhaps the ISOLINUX configuration) to get
+# PXELINUX/ISOLINUX output and/or kernel boot output to show up on the serial port.  This service
+# only spawns a tty once the system reaches a multi-user runlevel.
+
+# TODO: For VMs, this should be hvc0.  Is there a way to spawn a tty on whichever we find?
+
+# TODO: Also, what if ttyS0 isn't the one that's redirected?  (E.g. some of our machines have ttyS0
+# as the physical serial port and ttyS1/COM2 as the IPMI SOL port.  We'd like all of this to work
+# with both of those.)
+
+for SERIAL_TERMINAL in ttyS0 ttyS1 hvc0; do
+cat >>/etc/init/${SERIAL_TERMINAL}.conf <<EOF
+# ${SERIAL_TERMINAL} - getty
+#
+# This service maintains a getty on ${SERIAL_TERMINAL} from the point the system is
+# started until it is shut down again.
+
+start on stopped rc or RUNLEVEL=[12345]
+stop on runlevel [!12345]
+
+respawn
+exec /sbin/getty -L 115200 ${SERIAL_TERMINAL} vt102
+EOF
+done

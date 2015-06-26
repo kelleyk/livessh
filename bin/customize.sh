@@ -5,15 +5,24 @@
 
 set -e
 
-UBUNTU_ARCHIVE_URL="http://us.archive.ubuntu.com/ubuntu/"
-UBUNTU_SECURITY_URL="http://security.ubuntu.com/ubuntu/"
+# TODO: Copy vars (or some subset) of it in here; don't let this be hardwired.
+
 APT_PROXY_URL="http://192.168.0.1:3142"
 
-APT_GET="env DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get"
-APT_GET_INSTALL="$APT_GET install -y --no-install-recommends"
+USERNAME="solid"
+IMAGE_FLAVOUR="ubuntu-livessh"
+HOSTNAME_BASE="livessh"
 
 # Volume with files we are bringing into the container.  If we were using a Dockerfile, we could also ADD these.
 RESOURCES_VOLUME_PATH="/resources"
+
+############################################
+
+UBUNTU_ARCHIVE_URL="http://us.archive.ubuntu.com/ubuntu/"
+UBUNTU_SECURITY_URL="http://security.ubuntu.com/ubuntu/"
+
+APT_GET="env DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get"
+APT_GET_INSTALL="$APT_GET install -y --no-install-recommends"
 
 ############################################
 ## Get apt ready to rock
@@ -47,43 +56,13 @@ locale-gen "en_US.UTF-8"
 update-locale LANG="en_US.UTF-8" LANGUAGE="en_US"
 # TODO: Also, 'console-data' and 'console-setup' ?? (which we have preseed lines for--)
 
-
+ 
 # XXX: why do this separately?
 # XXX: If we skip the noninteractive part, this complains that 'grub2 depends on grub-pc but grub-pc is not configured yet' and tries to ask us questions.
 $APT_GET_INSTALL grub2
 
 # XXX: Necessary?  (The package is, I'm pretty sure, but do we need to ask for it?)
 $APT_GET_INSTALL user-setup
-
-############################################
-## Install custom software
-############################################
-
-# XXX: Help with troubleshooting
-$APT_GET_INSTALL debconf-utils
-
-$APT_GET_INSTALL zsh
-
-$APT_GET_INSTALL avahi-daemon squid-deb-proxy-client
-
-$APT_GET_INSTALL "linux-image-extra-$(uname -r)"
-
-# ibstat, etc. -- should replace with Mellanox packages
-$APT_GET_INSTALL infiniband-diags
-
-############################################
-## OpenSSH server & hostkeys
-############################################
-
-$APT_GET_INSTALL openssh-server
-rm -f /etc/ssh/ssh_host_*_key*
-# N.B.: The keys are *not* automatically regenerated!
-cat >/etc/rc2.d/S99firstboot_generate-ssh-keys <<EOF
-#!/bin/bash
-
-ssh-keygen -A && rm /etc/rc5.d/S99firstboot_generate-ssh-keys
-EOF
-chmod +x /etc/rc2.d/S99firstboot_generate-ssh-keys
 
 ############################################
 ## Sudo without password for all sudoers, not just the casper user
@@ -93,31 +72,33 @@ cat >/etc/sudoers.d/nopasswd <<EOF
 %sudo  ALL=(ALL:ALL) NOPASSWD:ALL
 EOF
 
+# TODO: Preserve SSH_* variables and EDITOR, VISUAL.
+# TODO: Add EDITOR/VISUAL preferences to /etc/profile.d/whatever
+
 ############################################
 ## Add user accounts and authorized SSH key(s)
 ############################################
 
 # # XXX: Adding --uid to see if that fixes casper's problems.  (Is casper requesting UID 1000 for the livecd user?)
-USERNAME=solid
 adduser --gecos '' --disabled-password "$USERNAME" --uid 2000  # --shell "$(which zsh)"
 for GROUPNAME in adm cdrom sudo dip plugdev; do  # lpadmin sambashare -- these grooups don't seem to exist at the time this script is running
     adduser "$USERNAME" "$GROUPNAME"
 done
-rsync --archive /resources/home/"$USERNAME"/ /home/"$USERNAME"/
+rsync --archive "${RESOURCES_VOLUME_PATH}"/home/"$USERNAME"/ /home/"$USERNAME"/
 chown -R "$USERNAME": /home/"$USERNAME"/
 
 ############################################
-## 
+## Configure casper; try to set unique hostname based on MAC address
 ############################################
 
 # N.B.: Quoting the limit string (EOF) prevents parameter substitution, effectively escaping all of
 # the $, `, and \ special characters that we want to write to casper.conf.  Ref.: http://tldp.org/LDP/abs/html/here-docs.html#HEREDOCREF
+cat >>/etc/casper.conf <<EOF
+export FLAVOUR="${IMAGE_FLAVOUR}"
+export USERNAME="${USERNAME}"
+export HOST="${HOSTNAME_BASE}"
+EOF
 cat >>/etc/casper.conf <<'EOF'
-export FLAVOUR="ubuntu-livessh"
-export USERNAME="solid"
-
-export HOST="livessh"
-
 # The first unicast, globally-assigned Ethernet-size link-layer address.
 HWADDR="$(cat /sys/class/net/*/address | egrep '^[0-9a-f][048c](:[0-9a-f]{2}){5}$' | egrep -v '^00(:00){5}$' | sort -u | head -n 1)"
 # If none are available, try the first locally-assigned address.  (Maybe this is a VM.)
@@ -129,85 +110,6 @@ if [ "x${HWADDR}" != "x" ]; then
   export HOST="${HOST}-$(echo $HWADDR | sed 's/://g')"
 fi
 EOF
-
-############################################
-##
-############################################
-
-$APT_GET_INSTALL nfs-common
-
-mkdir -p /mnt/scratch
-
-cat >>/etc/profile.d/livessh-scratch-bin.sh <<'EOF'
-export PATH="/mnt/scratch/bin:${PATH}"
-EOF
-chmod +x /etc/profile.d/livessh-scratch-bin.sh
-
-# N.B.: /etc/fstab (mounted at /root/etc/fstab) is overwritten by /scripts/casper-bottom/12fstab in
-# the initramfs (which is /usr/share/initramfs-tools/scripts/casper-bottom/12fstab in the filesystem
-# before the initramfs is built).
-cat >>/usr/share/initramfs-tools/scripts/casper-bottom/70kk-nfs-mount <<'EOF'
-#!/bin/sh
-
-PREREQ=""
-DESCRIPTION="Adding NFS mounts to fstab..."
-FSTAB=/root/etc/fstab
-
-prereqs()
-{
-       echo "$PREREQ"
-}
-
-case $1 in
-# get pre-requisites
-prereqs)
-       prereqs
-       exit 0
-       ;;
-esac
-
-. /scripts/casper-functions
-
-log_begin_msg "$DESCRIPTION"
-
-cat >> $FSTAB <<EOF-FSTAB
-192.168.0.1:/srv/nfs/scratch /mnt/scratch nfs rsize=8192,wsize=8192,timeo=14,intr,nofail,nobootwait 0 0
-EOF-FSTAB
-
-rm -f /root/etc/rcS.d/S*checkroot.sh
-
-log_end_msg
-EOF
-chmod +x /usr/share/initramfs-tools/scripts/casper-bottom/70kk-nfs-mount
-
-############################################
-## Enable serial console on ttyS0
-############################################
-
-# You also need to edit the PXE configuration (and/or perhaps the ISOLINUX configuration) to get
-# PXELINUX/ISOLINUX output and/or kernel boot output to show up on the serial port.  This service
-# only spawns a tty once the system reaches a multi-user runlevel.
-
-# TODO: For VMs, this should be hvc0.  Is there a way to spawn a tty on whichever we find?
-
-# TODO: Also, what if ttyS0 isn't the one that's redirected?  (E.g. some of our machines have ttyS0
-# as the physical serial port and ttyS1/COM2 as the IPMI SOL port.  We'd like all of this to work
-# with both of those.)
-
-for SERIAL_TERMINAL in ttyS0 ttyS1 hvc0; do
-cat >>/etc/init/${SERIAL_TERMINAL}.conf <<EOF
-# ${SERIAL_TERMINAL} - getty
-#
-# This service maintains a getty on ${SERIAL_TERMINAL} from the point the system is
-# started until it is shut down again.
-
-start on stopped rc or RUNLEVEL=[12345]
-stop on runlevel [!12345]
-
-respawn
-exec /sbin/getty -L 115200 ${SERIAL_TERMINAL} vt102
-EOF
-done
 
 ############################################
 ##
@@ -245,7 +147,7 @@ dpkg-reconfigure -f noninteractive tzdata
 ## Run user customize scripts (in the target environment)
 #####################
 
-for SCRIPT_NAME in $(run-parts --test /resources/customize.d); do
+for SCRIPT_NAME in $(run-parts --test "${RESOURCES_VOLUME_PATH}"/customize.d); do
     source "${SCRIPT_NAME}"
 done
 

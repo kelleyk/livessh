@@ -16,15 +16,15 @@ mkdir -p "$ARTIFACTS_TMPDIR"
 # And this is where we make files available to those scripts.
 rm -rf "$RESOURCES_TMPDIR"
 mkdir -p "$RESOURCES_TMPDIR"
-cp -a customize.sh "$RESOURCES_TMPDIR"/customize.sh
-cp -a customize.d "$RESOURCES_TMPDIR"/customize.d
+cp -a "${DATA_PATH}"/customize.sh "$RESOURCES_TMPDIR"/customize.sh
+cp -a "$CUSTOMIZE_BASE_PATH"/customize.d "$RESOURCES_TMPDIR"/customize.d
 # chmod +x "$RESOURCES_TMPDIR"/_go.sh
 
 #####################
 ## Run user pre-customize scripts (on the host)
 #####################
 
-for SCRIPT_NAME in $(run-parts --test pre-customize.d); do
+for SCRIPT_NAME in $(run-parts --test "$CUSTOMIZE_BASE_PATH"/pre-customize.d); do
     source "${SCRIPT_NAME}"
 done
 

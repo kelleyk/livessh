@@ -20,6 +20,8 @@ export APT_PROXY="http://192.168.0.1:3142"
 
 export BASE_PATH="${BASE_PATH-$PWD/../tmp/filesystem}"
 export IMAGE_PATH="${IMAGE_PATH-$PWD/../tmp/image}"
+export DATA_PATH="../data"
+export CUSTOMIZE_BASE_PATH=".."
 
 # Docker volume; read-only; files being provided *to* the container.
 export RESOURCES_TMPDIR="$PWD/../tmp/resources"

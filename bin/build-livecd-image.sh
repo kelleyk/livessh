@@ -48,7 +48,7 @@ sudo touch "${IMAGE_PATH}"/preseed/ubuntu.seed
 ############################################
 
 # isolinux.bin, chain.c32, gfxboot.c32, vesamenu.c32
-sudo cp data/isolinux/* "${IMAGE_PATH}"/isolinux/
+sudo cp "${DATA_PATH}"/isolinux/* "${IMAGE_PATH}"/isolinux/
 
 ############################################
 ## ISOLINUX -- configuration

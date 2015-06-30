@@ -24,11 +24,16 @@
 
 # Features
 
-- avahi/hostname
-
 - openssh
 
-- custom software
+    - By default, pulls in your SSH keys (~/.ssh/authorized_keys) at build time.
+
+- avahi/hostname
+
+- Installs squid-deb-proxy-client, so if an apt proxy is being advertised via zeroconf, it will be automatically used,
+  should you need to install new things after booting the image.
+
+- custom software is easy to add
 
 - NFS mount
 
@@ -55,3 +60,9 @@
   - On the first virtual terminal (tty1), first two hardware serial consoles (ttyS0, ttyS1), and common virtual serial
     consoles (hvc0, others?)  a tty should be present.  If the autologin setting is enabled, agetty should be invoked
     with '--autologin root' so that there is a root shell on each of the above instead of a login prompt.
+
+- Shell
+
+  - If changing the default shell to /bin/zsh, check that we actually get zsh: from a prompt, ZSH_VERSION should be set
+    and BASH_VERSION should be unset.  You can also verify that tmp/filesytem/etc/{passwd,adduser.conf} contain
+    references to /bin/zsh instead of to /bin/bash.

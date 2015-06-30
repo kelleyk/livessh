@@ -4,5 +4,7 @@
 # N.B.: If we try to set anyone's shell to something not listed in /etc/shells, there will be tears.
 $APT_GET_INSTALL zsh
 
-# sed -i -r 's/^(DSHELL=)(.*)$/\1\/bin\/zsh/g' /etc/adduser.conf
-# chsh -s /bin/zsh root
+# The \0 backreference works without -r, but \1 doesn't.
+sed -i -r 's/^(DSHELL=)(.*)$/\1\/bin\/zsh/g' /etc/adduser.conf
+chsh -s /bin/zsh root
+chsh -s /bin/zsh "${USERNAME}"

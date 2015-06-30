@@ -3,17 +3,24 @@
 #  Configuration sourced by other scripts.
 #
 
+# TODO: Use autodetection (a la apt-config-tool) of the host's apt proxy situation.
+export APT_PROXY="http://192.168.0.1:3142"
+
 export RELEASE=vivid
 export USERNAME=solid
-export PASSWORD=solid
+export PASSWORD=solid  # TODO: Currently not used.
 # export DOCKER_REPO_PATH="$PWD/../docker.git"
 export CONTAINER_NAME="tmp-livessh"
 export IMAGE_NAME="livessh-ubuntu15.04"  # volume name of .iso
 export IMAGE_RELEASE_NOTES_URL="http://example.com"
 export OUTPUT_ISO_PATH="${PWD}/../${IMAGE_NAME}.iso"
 
-# TODO: Use autodetection (a la apt-config-tool) of the host's apt proxy situation.
-export APT_PROXY="http://192.168.0.1:3142"
+#####################
+## Options used by customize.d scripts
+#####################
+
+## TODO: Not yet supported.
+# export TERMINAL_AUTOLOGIN="root"
 
 #####################
 ## End of user-configurables

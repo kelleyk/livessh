@@ -14,7 +14,42 @@
 # as the physical serial port and ttyS1/COM2 as the IPMI SOL port.  We'd like all of this to work
 # with both of those.)
 
-for SERIAL_TERMINAL in ttyS0 ttyS1 hvc0; do
+# TODO: XXX:
+#  - Just adding e.g. 'Requires' does not stop systemd from trying to start ttyS1 even if there's no second
+#    serial port (and so on).  This is because /dev/ttyS* are created even if no actual serial port exists.
+#  - The non-systemd branch of this is not up-to-date.  In particular, it doesn't support VIRTUAL_TERMINALS
+#    or --autologin at all.
+#  - Should make --autologin configurable.
+
+SERIAL_TERMINALS="ttyS0 ttyS1 hvc0"
+VIRTUAL_TERMINALS="tty1"
+
+if test x"$(readlink -f /sbin/init)" == x/lib/systemd/systemd; then
+
+    # Ref. for systemd & serial terminals:
+    #    http://0pointer.de/blog/projects/serial-console.html
+
+    for TERMINAL_NAME in $SERIAL_TERMINALS; do
+        cat /lib/systemd/system/serial-getty@.service |\
+            sed 's/^ExecStart=-\/sbin\/agetty /\0--autologin root /g' \
+                >/etc/systemd/system/serial-getty@"$TERMINAL_NAME".service
+        systemctl enable serial-getty@"$TERMINAL_NAME".service
+    done
+
+    for TERMINAL_NAME in $VIRTUAL_TERMINALS; do
+        cat /lib/systemd/system/getty@.service |\
+            sed 's/^ExecStart=-\/sbin\/agetty /\0--autologin root /g' \
+                >/etc/systemd/system/getty@"$TERMINAL_NAME".service
+        # echo "enable vt $TERMINAL_NAME"
+        ## @KK: Fails with "file exists".
+        # systemctl enable getty@"$TERMINAL_NAME".service        
+        # echo "enabled vt $TERMINAL_NAME"
+    done
+
+    
+else
+    
+for SERIAL_TERMINAL in $SERIAL_TERMINALS; do
 cat >>/etc/init/${SERIAL_TERMINAL}.conf <<EOF
 # ${SERIAL_TERMINAL} - getty
 #
@@ -28,3 +63,5 @@ respawn
 exec /sbin/getty -L 115200 ${SERIAL_TERMINAL} vt102
 EOF
 done
+
+fi

@@ -6,11 +6,53 @@
 
 $APT_GET_INSTALL openssh-server
 rm -f /etc/ssh/ssh_host_*_key*
+
+echo "**** FINISHED OPENSSH INSTALL *****"
+
 # N.B.: The keys are *not* automatically regenerated!
-cat >/etc/rc2.d/S99firstboot_generate-ssh-keys <<EOF
+
+if test x"$(readlink -f /sbin/init)" == x/lib/systemd/systemd; then
+
+    echo "**** SYSTEMD ****"
+
+    cat >/etc/systemd/system/firstboot-generate-ssh-keys.service <<EOF
+[Unit]
+Before=multi-user.target ssh.service
+[Install]
+WantedBy=multi-user.target ssh.service
+[Service]
+Type=oneshot
+ExecStart=/firstboot-generate-ssh-keys
+EOF
+    # XXX: This is a slightly gross place to put this stuff.  Where would be better?
+    cat >/firstboot-generate-ssh-keys <<EOF
+#!/bin/bash
+
+ssh-keygen -A && systemctl disable firstboot-generate-ssh-keys && rm /etc/systemd/system/firstboot-generate-ssh-keys.service /firstboot-generate-ssh-keys
+EOF
+    chmod +x /firstboot-generate-ssh-keys
+    
+    echo "**** SYSTEMD 1 ****"
+    # systemctl daemon-reload
+    
+    echo "**** SYSTEMD 2 ****"
+
+    systemctl enable firstboot-generate-ssh-keys
+
+    # mkdir -p /etc/systemd/system/multi-user.target.wants
+    # ln -s /etc/systemd/system/firstboot-generate-ssh-keys.service
+    
+    echo "**** SYSTEMD 3 ****"
+
+else
+    
+    cat >/etc/rc2.d/S99firstboot_generate-ssh-keys <<EOF
 #!/bin/bash
 
 ssh-keygen -A && rm /etc/rc5.d/S99firstboot_generate-ssh-keys
 EOF
-chmod +x /etc/rc2.d/S99firstboot_generate-ssh-keys
+    chmod +x /etc/rc2.d/S99firstboot_generate-ssh-keys
 
+fi
+
+echo "**** FINISHED OPENSSH KEYGEN SCRIPT PLACEMENT *****"

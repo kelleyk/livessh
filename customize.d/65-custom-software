@@ -9,10 +9,6 @@ PACKAGES=""
 # XXX: Help with troubleshooting
 PACKAGES+=" debconf-utils"
 
-# TODO: Change the live user's shell.
-# TODO: Get syntax coloring set up.
-PACKAGES+=" zsh"
-
 # If we tried to use $(uname -r) here, we'd get the host's kernel version, not the container's.
 PACKAGES+=" linux-image-extra-virtual"
 
@@ -20,5 +16,11 @@ PACKAGES+=" linux-image-extra-virtual"
 PACKAGES+=" infiniband-diags"
 
 PACKAGES+=" emacs24-nox"
+
+PACKAGES+=" build-essential"
+
+PACKAGES+=" cryptsetup-bin"
+PACKAGES+=" lsscsi ethtool"
+
 
 $APT_GET_INSTALL $PACKAGES

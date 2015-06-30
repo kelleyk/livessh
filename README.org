@@ -30,6 +30,13 @@
 
 - avahi/hostname
 
+    - Instead of "ubuntu", the live environment changes its hostname to e.g. "livessh-5254000f9ba9", where the latter is
+      its MAC address.
+
+    - The live environment runs the Avahi daemon, so you should be able to use 'avahi-browse -at' to see what IP address
+      the machine has received via DHCP.  (If you have MDNS set up, you can also just use "livessh-5254000f9ba9.local"
+      as a hostname.)
+
 - Installs squid-deb-proxy-client, so if an apt proxy is being advertised via zeroconf, it will be automatically used,
   should you need to install new things after booting the image.
 

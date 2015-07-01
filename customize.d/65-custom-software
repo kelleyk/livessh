@@ -6,6 +6,9 @@
 
 PACKAGES=""
 
+# Without this, machines won't respond to polite suggestions that they shut down.
+PACKAGES+=" acpid"
+
 # XXX: Help with troubleshooting
 PACKAGES+=" debconf-utils"
 

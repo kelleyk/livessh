@@ -1,4 +1,19 @@
-# Building
+# livessh
+
+A framework for building Ubuntu "live CD" images that start an SSH server at boot.  The resulting images can be booted
+in any way that normal Ubuntu images can be, including via PXE ("netbooting"), which is how I typically use them.
+
+The images can, for example:
+
+- set a predicatable hostname based on the machine's network interfaces' hardware addresses
+
+- advertise via Zeroconf/Avahi
+
+- have your SSH key(s) baked in
+
+- automatically mount an NFS volume
+
+## Building
 
 - Change to the 'bin' directory.  (Sorry; yes, this must be your working directory.)
 
@@ -22,7 +37,7 @@
     (This builds a squashfs from the filesystem created in the previous step, puts that, ISOLINUX, and a few
     configuration files into a temporary directory (IMAGE_PATH), and then builds an ISO from that directory.)
 
-# Features
+## Features
 
 - openssh
 
@@ -40,17 +55,17 @@
 - Installs squid-deb-proxy-client, so if an apt proxy is being advertised via zeroconf, it will be automatically used,
   should you need to install new things after booting the image.
 
-- custom software is easy to add
+- Custom software is easy to add
 
 - NFS mount
 
-# Tips
+## Tips
 
-- Testing in a libvirt/qemu/KVM guest
+- TODO: Testing in a libvirt/qemu/KVM guest
 
-- PXE booting
+- TODO: PXE booting
 
-# Troubleshooting
+## Troubleshooting
 
 - If you are troubleshooting the early part of the booting process, you may need to inspect the initramfs.  The
   'bin/extract-initramfs.sh' script demonstrates how to do this.
@@ -60,7 +75,7 @@
   unpacked equivalent of the squashfs image in the ISO) is there for you to inspect (at BASE_PATH, right where it was
   built); you don't need direct access to the running guest!
 
-# Nanual testing checklist
+## Nanual testing checklist
 
 - Consoles
 

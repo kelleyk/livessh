@@ -30,7 +30,8 @@ operating systems.
   - ./build-debootstrap-image.sh
 
     (This runs `debootstrap` inside a docker container.  It uses the `mkimage` scripts from the Docker repository.  This
-    creates a pristine, baseline Ubuntu installation.)
+    creates a pristine, baseline Ubuntu installation.  You don't need to repeat this step every time you tweak your
+    customization scripts.)
 
   - ./build-customized-environment.sh
 
@@ -43,6 +44,25 @@ operating systems.
     (This builds a squashfs from the filesystem created in the previous step, puts that, ISOLINUX, and a few
     configuration files into a temporary directory (`IMAGE_PATH`), and then builds an ISO from that directory.)
 
+## Tips
+
+- Since host keys are regenerated on each boot, host key warnings will become annoying.  You may want to try
+
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+
+  I have this command aliased to `ssh-tmp` in my dotfiles for convenience.
+
+- To discover the newly-booted machine's hostname and/or IP address, you can always check your DHCP server's leases; or,
+you can use Zeroconf.
+
+    avahi-browse -t _workstation._tcp
+
+- TODO: Describe how to use an OpenSSH user CA.
+
+- TODO: Describe testing in a libvirt/qemu/KVM guest.
+
+- TODO: Describe PXE booting.
+
 ## Features
 
 - openssh
@@ -52,7 +72,8 @@ operating systems.
 - hostname
 
     - Instead of "ubuntu", the live environment changes its hostname to e.g. "livessh-5254000f9ba9", where the latter is
-      its MAC address.
+      its hardware address (i.e. MAC address).  If it fails to detect a hardware address, it will chagne its hostname to
+      just "livessh".
 
 - Zeroconf/Avahi
 
@@ -69,11 +90,9 @@ operating systems.
 
 - Serial console
 
-## Tips
+- `zsh` instead of `bash`
 
-- TODO: Testing in a libvirt/qemu/KVM guest
-
-- TODO: PXE booting
+  - TODO: Touch `~/.zshrc` to avoid the first-run configuration prompt.
 
 ## Troubleshooting
 

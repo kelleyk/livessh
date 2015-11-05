@@ -17,6 +17,8 @@ operating systems.
 
 - Better separation of the framework from my particular configuration.
 
+- TODO: Touch `~/.zshrc` to avoid the first-run configuration prompt.
+
 ## Building
 
 - The build process uses Docker; you will need to have Docker
@@ -65,46 +67,88 @@ you can use Zeroconf.
 
 ## Features
 
-- openssh
+- `data/customize.sh`:
 
-    - By default, pulls in your SSH keys (`~/.ssh/authorized_keys`) at build time.
+    - Updates all installed packages.
 
-- hostname
+    - Sets hostname.
 
-    - Instead of "ubuntu", the live environment changes its hostname to e.g. "livessh-5254000f9ba9", where the latter is
-      its hardware address (i.e. MAC address).  If it fails to detect a hardware address, it will chagne its hostname to
-      just "livessh".
+        - Instead of "ubuntu", the live environment changes its hostname to e.g. "livessh-5254000f9ba9", where the
+          latter is its hardware address (i.e. MAC address).  Locally-administered hardware addresses (such as those
+          commonly assigned to virtual network interfaces) are chosen only if others are not available.  If no hardware
+          address can be detected, the machine's hostname will be set to "livessh".
 
-- Zeroconf/Avahi
+    - Enables passwordless `sudo` access (which is important; see the note about setting the live user's password not working).
 
-    - The live environment runs the Avahi daemon, so you should be able to use 'avahi-browse -at' to see what IP address
+    - Sets time zone.
+
+    - Sets locale.
+
+    - Cleans up temporary files.
+
+    - Rebuilds the initramfs and the dpkg manifest.
+
+- `pre-customize.d/70-kk-ssh-keys`:
+
+    - Bakes in SSH keys.  By default, pulls in your SSH keys (`~/.ssh/authorized_keys`).
+
+- `customize.d/10-openssh`:
+
+    - Installs the OpenSSH server.
+
+    - Prevents host keys from being baked into the image and adds a `systemd` unit that regenerates them at boot time.
+
+- `customize.d/20-serial-console`:
+
+    - Provides automatically-logged-in consoles on
+
+        - the virtual terminal `tty1`
+
+        - the serial ports `ttyS0` and `ttyS1`
+
+        - `hvc0` (for use under Xen, qemu/KVM/libvirt, etc.)
+
+- `customize.d/20-zeroconf`:
+
+    - Installs `avahi-daemon`, so you should be able to use 'avahi-browse -at' to see what IP address
       the machine has received via DHCP.  (If you have MDNS set up, you can also just use "livessh-5254000f9ba9.local"
       as a hostname.)
 
-- Installs `squid-deb-proxy-client`, so if an apt proxy is being advertised via zeroconf, it will be automatically used,
-  should you need to install new things after booting the image.
+    - Installs `squid-deb-proxy-client`, so if an apt proxy is being advertised via zeroconf, it will be automatically
+      used, should you need to install new things after booting the image.
 
-- Custom software is easy to add; see `customize.d`.
+- `customize.d/30-default-shell-zsh`:
 
-- NFS mount
+    - `zsh` instead of `bash`
 
-- Serial console
+- `customize.d/60-custom-nfs-mount`:
 
-- `zsh` instead of `bash`
+    - Mounts an NFS volume from a particular hardwired location.  This volume is an easy place to stick scripts,
+      utilities, notes, etc. without having to bake them into the image.
 
-  - TODO: Touch `~/.zshrc` to avoid the first-run configuration prompt.
+- `customize.d/65-custom-software`:
+
+    - Installs packages that I use frequently.
+
+- `customize.d/70-ipmitool`:
+
+    - Installs `ipmitool`, which comes in handy when dealing with BMCs.
+
+- `customize.d/80-live-user-password`:
+
+    - (Commented out, since it doesn't work.)
 
 ## Troubleshooting
 
 - If you are troubleshooting the early part of the booting process, you may need to inspect the initramfs.  The
-  'bin/extract-initramfs.sh' script demonstrates how to do this.
+  'bin/extract-initramfs.sh' script demonstrates how to do this.  (Run that script from the `tmp/` subdirectory.)
 
 - Normal tricks for getting access to a VM's filesystem for inspection purposes, like 'guestmount', won't work (because
   the guest's disk isn't being used; you're booting off a CD!).  However, the live environment's filesystem (the
-  unpacked equivalent of the squashfs image in the ISO) is there for you to inspect (at BASE_PATH, right where it was
+  unpacked equivalent of the squashfs image in the ISO) is there for you to inspect (at `BASE_PATH`, right where it was
   built); you don't need direct access to the running guest!
 
-## Nanual testing checklist
+## Manual testing checklist
 
 - Consoles
 

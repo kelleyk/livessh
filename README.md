@@ -48,14 +48,14 @@ operating systems.
 
 - Since host keys are regenerated on each boot, host key warnings will become annoying.  You may want to try
 
-      ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+      `ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null`
 
   I have this command aliased to `ssh-tmp` in my dotfiles for convenience.
 
 - To discover the newly-booted machine's hostname and/or IP address, you can always check your DHCP server's leases; or,
 you can use Zeroconf.
 
-      avahi-browse -t _workstation._tcp
+      `avahi-browse -t _workstation._tcp`
 
 - TODO: Describe how to use an OpenSSH user CA.
 

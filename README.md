@@ -3,17 +3,23 @@
 A framework for building Ubuntu "live CD" images that start an SSH server at boot.  The resulting images can be booted
 in any way that normal Ubuntu images can be, including via PXE ("netbooting"), which is how I typically use them.
 
-The images can, for example:
+The images can, for example, set a predicatable hostname based on the machine's network interfaces' hardware addresses;
+advertise via Zeroconf/Avahi; and have your SSH key(s) baked in.  This makes it trivial to PXE boot a machine and then
+connect via SSH.
 
-- set a predicatable hostname based on the machine's network interfaces' hardware addresses
+In the past, I've used this ability to reimage machines, to inventory hardware, to update or reconfigure the BIOS and
+BMC (IPMI device), to update device firmware, and to perform an array of maintenance tasks on machines with damaged
+operating systems.
 
-- advertise via Zeroconf/Avahi
+## Todo
 
-- have your SSH key(s) baked in
+- Better documentation.
 
-- automatically mount an NFS volume
+- Better separation of the framework from my particular configuration.
 
 ## Building
+
+- The build process uses Docker; you will need to have Docker
 
 - Change to the 'bin' directory.  (Sorry; yes, this must be your working directory.)
 
@@ -23,41 +29,45 @@ The images can, for example:
 
   - ./build-debootstrap-image.sh
 
-    (This runs debootstrap inside a docker container.  It uses the mkimage scripts from the Docker repository.  This
+    (This runs `debootstrap` inside a docker container.  It uses the `mkimage` scripts from the Docker repository.  This
     creates a pristine, baseline Ubuntu installation.)
 
   - ./build-customized-environment.sh
 
-    (This exports the debootstrapped Docker container from the previous step into a temporary directory (BASE_PATH).
-    Your pre-customize.d scripts are run on the host.  The 'customize.sh' script is invoked inside a container, which in
-    turn runs your customize.d scripts.)  the container; see the 'customize.sh' script, which is the top-l
+    (This exports the `debootstrap`ped Docker container from the previous step into a temporary directory (`BASE_PATH`).
+    Your `pre-customize.d` scripts are run on the host.  The `customize.sh` script, which in turn runs your
+    `customize.d` scripts, is invoked inside a container.)
 
   - ./build-livecd-image.sh
 
     (This builds a squashfs from the filesystem created in the previous step, puts that, ISOLINUX, and a few
-    configuration files into a temporary directory (IMAGE_PATH), and then builds an ISO from that directory.)
+    configuration files into a temporary directory (`IMAGE_PATH`), and then builds an ISO from that directory.)
 
 ## Features
 
 - openssh
 
-    - By default, pulls in your SSH keys (~/.ssh/authorized_keys) at build time.
+    - By default, pulls in your SSH keys (`~/.ssh/authorized_keys`) at build time.
 
-- avahi/hostname
+- hostname
 
     - Instead of "ubuntu", the live environment changes its hostname to e.g. "livessh-5254000f9ba9", where the latter is
       its MAC address.
+
+- Zeroconf/Avahi
 
     - The live environment runs the Avahi daemon, so you should be able to use 'avahi-browse -at' to see what IP address
       the machine has received via DHCP.  (If you have MDNS set up, you can also just use "livessh-5254000f9ba9.local"
       as a hostname.)
 
-- Installs squid-deb-proxy-client, so if an apt proxy is being advertised via zeroconf, it will be automatically used,
+- Installs `squid-deb-proxy-client`, so if an apt proxy is being advertised via zeroconf, it will be automatically used,
   should you need to install new things after booting the image.
 
-- Custom software is easy to add
+- Custom software is easy to add; see `customize.d`.
 
 - NFS mount
+
+- Serial console
 
 ## Tips
 

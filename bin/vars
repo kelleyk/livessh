@@ -3,15 +3,30 @@
 #  Configuration sourced by other scripts.
 #
 
+#####################
+## Per-relese configuration
+#####################
+
+# export RELEASE=vivid
+# export IMAGE_NAME="livessh-ubuntu15.04"  # volume name of .iso
+export RELEASE=wily
+export IMAGE_NAME="livessh-ubuntu15.10"  # volume name of .iso
+
+####################
+## apt-proxy config
+#####################
+
 # TODO: Use autodetection (a la apt-config-tool) of the host's apt proxy situation.
 export APT_PROXY="http://192.168.0.1:3142"
 
-export RELEASE=vivid
+####################
+## User configurables
+#####################
+
 export USERNAME=solid
 export PASSWORD=solid  # TODO: Currently not used.
 # export DOCKER_REPO_PATH="$PWD/../docker.git"
 export CONTAINER_NAME="tmp-livessh"
-export IMAGE_NAME="livessh-ubuntu15.04"  # volume name of .iso
 export IMAGE_RELEASE_NOTES_URL="http://example.com"
 export OUTPUT_ISO_PATH="${PWD}/../${IMAGE_NAME}.iso"
 

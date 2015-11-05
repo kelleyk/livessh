@@ -19,13 +19,23 @@ operating systems.
 
 - TODO: Touch `~/.zshrc` to avoid the first-run configuration prompt.
 
+- `pre-customize.d/70-kk-ssh-keys` makes explicit reference to my username.
+
+- `data/customize.sh` duplicates all of the stuff from `bin/vars`; yuck.
+
+- Better-document what the settings in `vars` do.
+
+- Automatically detect `APT_PROXY_URL`.
+
+- Have a more extensible mechanism for passing variables into `customize.d` scripts.
+
 ## Building
 
-- The build process uses Docker; you will need to have Docker
+- The build process uses Docker; you will need to have Docker working.
 
 - Change to the 'bin' directory.  (Sorry; yes, this must be your working directory.)
 
-- Edit 'vars' if appropriate.
+- Edit `vars` if appropriate.
 
 - Run
 
@@ -47,6 +57,9 @@ operating systems.
     configuration files into a temporary directory (`IMAGE_PATH`), and then builds an ISO from that directory.)
 
 ## Tips
+
+- Everything in `vars` is available to `pre-customize.d` scripts.  Only the variables coped into `customize.sh` by
+  `bin/build-customized-environment.sh` are available to `customize.d` scripts.
 
 - Since host keys are regenerated on each boot, host key warnings will become annoying.  You may want to try
 

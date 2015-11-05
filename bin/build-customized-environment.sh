@@ -3,7 +3,7 @@
 #  Creates a Docker container from the post-debootstrap image uses it to install packages and perform other configuration tasks.
 #
 
-source ./vars
+. ./vars
 set -e
 
 # Remove any existing container with this name.  (This will cause 'docker run' to fail.)
@@ -16,16 +16,21 @@ mkdir -p "$ARTIFACTS_TMPDIR"
 # And this is where we make files available to those scripts.
 rm -rf "$RESOURCES_TMPDIR"
 mkdir -p "$RESOURCES_TMPDIR"
-cp -a "${DATA_PATH}"/customize.sh "$RESOURCES_TMPDIR"/customize.sh
+
+# Insert the values of these four variables.  (XXX: This is very messy and depends on our not having commas in the
+# values of these variables.)
+sed -e "s,@SET_VARS@,APT_PROXY_URL=\"$APT_PROXY\"\nUSERNAME=\"$USERNAME\"\nIMAGE_FLAVOUR=\"$IMAGE_FLAVOUR\"\nHOSTNAME_BASE=\"$HOSTNAME_BASE\"\n,g" "${DATA_PATH}"/customize.sh.in > "$RESOURCES_TMPDIR"/customize.sh
+chmod +x "$RESOURCES_TMPDIR"/customize.sh
+
+# TODO: Nothing from `vars` is available to these scripts.
 cp -a "$CUSTOMIZE_BASE_PATH"/customize.d "$RESOURCES_TMPDIR"/customize.d
-# chmod +x "$RESOURCES_TMPDIR"/_go.sh
 
 #####################
 ## Run user pre-customize scripts (on the host)
 #####################
 
 for SCRIPT_NAME in $(run-parts --test "$CUSTOMIZE_BASE_PATH"/pre-customize.d); do
-    source "${SCRIPT_NAME}"
+    . "${SCRIPT_NAME}"
 done
 
 #####################

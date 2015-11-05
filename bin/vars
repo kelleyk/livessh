@@ -3,6 +3,8 @@
 #  Configuration sourced by other scripts.
 #
 
+### XXX: These settings are currently duplicated at the top of data/customize.sh.
+
 #####################
 ## Per-relese configuration
 #####################
@@ -17,22 +19,29 @@ export IMAGE_NAME="livessh-ubuntu15.10"  # volume name of .iso
 #####################
 
 # TODO: Use autodetection (a la apt-config-tool) of the host's apt proxy situation.
+# N.B.: This proxy is used only during the build process; at runtime, the image itself will use a proxy only if one is
+#       advertised via Zeroconf/Avahi.
+# N.B.: This variable *may* be unset if you do not wish to use a proxy.
 export APT_PROXY="http://192.168.0.1:3142"
 
 ####################
 ## User configurables
 #####################
 
-export USERNAME=solid
-export PASSWORD=solid  # TODO: Currently not used.
+export USERNAME=ubuntu
+export PASSWORD=ubuntu  # TODO: Currently not used.
 # export DOCKER_REPO_PATH="$PWD/../docker.git"
 export CONTAINER_NAME="tmp-livessh"
 export IMAGE_RELEASE_NOTES_URL="http://example.com"
 export OUTPUT_ISO_PATH="${PWD}/../${IMAGE_NAME}.iso"
 
 #####################
-## Options used by customize.d scripts
+## Options used by data/customize.sh script (and available to customize.d/* scripts).
 #####################
+
+# (APT_PROXY and USERNAME are also passed to customize.sh.)
+export IMAGE_FLAVOUR="ubuntu-livessh"
+export HOSTNAME_BASE="livessh"
 
 ## TODO: Not yet supported.
 # export TERMINAL_AUTOLOGIN="root"

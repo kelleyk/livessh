@@ -5,19 +5,15 @@
 
 set -e
 
-# TODO: Copy vars (or some subset) of it in here; don't let this be hardwired.
+# This token will be replaced by the definitions of APT_PROXY_URL, USERNAME, IMAGE_FLAVOUR, and HOSTNAME_BASE taken from `vars`.
+@SET_VARS@
 
-APT_PROXY_URL="http://192.168.0.1:3142"
-
-USERNAME="solid"
-IMAGE_FLAVOUR="ubuntu-livessh"
-HOSTNAME_BASE="livessh"
+############################################
 
 # Volume with files we are bringing into the container.  If we were using a Dockerfile, we could also ADD these.
 RESOURCES_VOLUME_PATH="/resources"
 
-############################################
-
+# @KK: Are these used for anything?  They don't appear to be.
 UBUNTU_ARCHIVE_URL="http://us.archive.ubuntu.com/ubuntu/"
 UBUNTU_SECURITY_URL="http://security.ubuntu.com/ubuntu/"
 
@@ -28,9 +24,11 @@ APT_GET_INSTALL="$APT_GET install -y --no-install-recommends"
 ## Get apt ready to rock
 ############################################
 
+if test -n "${APT_PROXY_URL}"; then
 cat >/etc/apt/apt.conf.d/80proxy <<EOF
 Acquire::http::Proxy "${APT_PROXY_URL}";
 EOF
+fi
 
 $APT_GET update
 $APT_GET dist-upgrade -y
@@ -102,11 +100,11 @@ cat >>/etc/casper.conf <<'EOF'
 # The first unicast, globally-assigned Ethernet-size link-layer address.
 HWADDR="$(cat /sys/class/net/*/address | egrep '^[0-9a-f][048c](:[0-9a-f]{2}){5}$' | egrep -v '^00(:00){5}$' | sort -u | head -n 1)"
 # If none are available, try the first locally-assigned address.  (Maybe this is a VM.)
-if [ "x${HWADDR}" == "x" ]; then
+if test -z "${HWADDR}"; then
   HWADDR="$(cat /sys/class/net/*/address | egrep '^[0-9a-f][26ae](:[0-9a-f]{2}){5}$' | egrep -v '^00(:00){5}$' | sort -u | head -n 1)"
 fi
 # If we got an address, strip the colons and append it to our hostname.
-if [ "x${HWADDR}" != "x" ]; then
+if test -n "${HWADDR}"; then
   export HOST="${HOST}-$(echo $HWADDR | sed 's/://g')"
 fi
 EOF

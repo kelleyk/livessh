@@ -21,8 +21,6 @@ operating systems.
 
 - `pre-customize.d/70-kk-ssh-keys` makes explicit reference to my username.
 
-- `data/customize.sh` duplicates all of the stuff from `bin/vars`; yuck.
-
 - Better-document what the settings in `vars` do.
 
 - Automatically detect `APT_PROXY_URL`.

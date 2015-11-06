@@ -3,7 +3,7 @@
 # Package the Docker container as a bootable ISO.
 #
 
-source ./vars
+. ./vars
 
 set -e
 

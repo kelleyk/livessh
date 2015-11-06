@@ -3,7 +3,7 @@
 #  Removes everything except the debootstrapped docker container.
 #
 
-source ./vars
+. ./vars
 set -e
 
 # Remove any existing container with this name.  (This will cause 'docker run' to fail.)

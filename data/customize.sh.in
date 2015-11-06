@@ -150,7 +150,7 @@ dpkg-reconfigure -f noninteractive tzdata
 #####################
 
 for SCRIPT_NAME in $(run-parts --test "${RESOURCES_VOLUME_PATH}"/customize.d); do
-    source "${SCRIPT_NAME}"
+    . "${SCRIPT_NAME}"
 done
 
 ############################################

@@ -34,7 +34,7 @@ $APT_GET update
 $APT_GET dist-upgrade -y
 
 ############################################
-## Install baseline software (based on the "live CD from scratch" wiki page) and fix locale issues
+## Install baseline software (based on the "live CD from scratch" wiki page)
 ############################################
 
 # N.B.: The ubuntu-minimal package will already have been installed by mkimage.sh.
@@ -48,6 +48,10 @@ $APT_GET_INSTALL ubuntu-standard linux-generic discover laptop-detect os-prober 
 #   libxcb1 libxdmcp6 libxext6 libxmuu1 libxtables10 lshw lsof ltrace man-db manpages mlocate mtr-tiny nano ntfs-3g openssh-client openssl parted plymouth-theme-ubuntu-text popularity-contest
 #   powermgmt-base ppp pppconfig pppoeconf psmisc python-apt-common python3-apt python3-commandnotfound python3-dbus python3-distupgrade python3-gdbm python3-gi python3-update-manager rsync strace
 #   tcpdump telnet time ubuntu-release-upgrader-core ufw update-manager-core usbutils wget xauth
+
+############################################
+## Fix locale issues
+############################################
 
 # What these variables do: https://superuser.com/questions/392439/
 locale-gen "en_US.UTF-8"
@@ -176,8 +180,7 @@ $APT_GET clean
 rm -rf /tmp/*   # XXX: we tell mksquashfs to ignore these anyhow
 rm -f /var/lib/dbus/machine-id
 rm -f /etc/apt/apt.conf.d/80proxy
-
-# XXX: Remove apt lists.
+rm -f /var/lib/apt/lists/*
 
 # TODO: Un-divert and un-symlink /sbin/initctl.
 

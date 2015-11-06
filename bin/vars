@@ -33,6 +33,7 @@ export PASSWORD=ubuntu  # TODO: Currently not used.
 # export DOCKER_REPO_PATH="$PWD/../docker.git"
 export CONTAINER_NAME="tmp-livessh"
 export IMAGE_RELEASE_NOTES_URL="http://example.com"
+export LIVESSH_TIMEZONE="America/Los_Angeles"  # Should we use UTC instead?
 export OUTPUT_ISO_PATH="${PWD}/../${IMAGE_NAME}.iso"
 
 #####################
@@ -41,7 +42,7 @@ export OUTPUT_ISO_PATH="${PWD}/../${IMAGE_NAME}.iso"
 
 # Add additional variables with e.g.
 #   CUSTOMIZE_VARS+=(FOO BAR)
-declare -a CUSTOMIZE_VARS=(IMAGE_FLAVOUR HOSTNAME_BASE APT_PROXY USERNAME)
+declare -a CUSTOMIZE_VARS=(IMAGE_FLAVOUR HOSTNAME_BASE APT_PROXY USERNAME LIVESSH_TIMEZONE)
 
 # (APT_PROXY and USERNAME are also passed to customize.sh.)
 export IMAGE_FLAVOUR="ubuntu-livessh"

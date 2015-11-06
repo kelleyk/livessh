@@ -119,40 +119,15 @@ fi
 EOF
 
 ############################################
-##
+## Timezone.
 ############################################
 
-# # e.g. debconf-get-selections
-# $APT_GET_INSTALL debconf-utils
-
-# # so that we can change timezone via preseed?
-# $APT_GET_INSTALL tzdata
-
-# Timezone; should we use UTC instead?
-echo "America/Los_Angeles" > /etc/timezone
+echo "${LIVESSH_TIMEZONE}" > /etc/timezone
 dpkg-reconfigure -f noninteractive tzdata
 
-### TODO: update grub config
-
-
-### CLEANUP
-
-### TODO:
-####
-## Remove upgraded, old linux-kernels if more than one:
-# ls /boot/vmlinuz-2.6.**-**-generic > list.txt
-# sum=$(cat list.txt | grep '[^ ]' | wc -l)
-#
-# if [ $sum -gt 1 ]; then
-# dpkg -l 'linux-*' | sed '/^ii/!d;/'"$(uname -r | sed "s/\(.*\)-\([^0-9]\+\)/\1/")"'/d;s/^[^ ]* [^ ]* \([^ ]*\).*/\1/;/[0-9]/!d' | xargs sudo apt-get -y purge
-# fi
-#
-# rm list.txt
-####
-
-#####################
+############################################
 ## Run user customize scripts (in the target environment)
-#####################
+############################################
 
 for SCRIPT_NAME in $(run-parts --test "${RESOURCES_VOLUME_PATH}"/customize.d); do
     . "${SCRIPT_NAME}"

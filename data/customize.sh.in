@@ -34,12 +34,25 @@ $APT_GET update
 $APT_GET dist-upgrade -y
 
 ############################################
+## 
+############################################
+
+APT_PACKAGES=""
+
+# XXX: why do this separately?
+# XXX: If we skip the noninteractive part, this complains that 'grub2 depends on grub-pc but grub-pc is not configured yet' and tries to ask us questions.
+APT_PACKAGES+=" grub2"
+
+# XXX: Necessary?  (The package is, I'm pretty sure, but do we need to ask for it?)
+APT_PACKAGES+=" user-setup"
+
+############################################
 ## Install baseline software (based on the "live CD from scratch" wiki page)
 ############################################
 
 # N.B.: The ubuntu-minimal package will already have been installed by mkimage.sh.
 
-$APT_GET_INSTALL ubuntu-standard linux-generic discover laptop-detect os-prober casper lupin-casper
+$APT_GET_INSTALL ubuntu-standard linux-generic discover laptop-detect os-prober casper lupin-casper $APT_PACKAGES
 ## N.B.: On top of the other packages, ubuntu-standard ropes in...
 # The following extra packages will be installed:
 #   accountsservice apparmor apt-transport-https bash-completion bsdmainutils busybox-static ca-certificates command-not-found command-not-found-data dnsutils dosfstools ed friendly-recovery ftp fuse
@@ -57,14 +70,6 @@ $APT_GET_INSTALL ubuntu-standard linux-generic discover laptop-detect os-prober 
 locale-gen "en_US.UTF-8"
 update-locale LANG="en_US.UTF-8" LANGUAGE="en_US"
 # TODO: Also, 'console-data' and 'console-setup' ?? (which we have preseed lines for--)
-
- 
-# XXX: why do this separately?
-# XXX: If we skip the noninteractive part, this complains that 'grub2 depends on grub-pc but grub-pc is not configured yet' and tries to ask us questions.
-$APT_GET_INSTALL grub2
-
-# XXX: Necessary?  (The package is, I'm pretty sure, but do we need to ask for it?)
-$APT_GET_INSTALL user-setup
 
 ############################################
 ## Sudo without password for all sudoers, not just the casper user
@@ -180,7 +185,7 @@ $APT_GET clean
 rm -rf /tmp/*   # XXX: we tell mksquashfs to ignore these anyhow
 rm -f /var/lib/dbus/machine-id
 rm -f /etc/apt/apt.conf.d/80proxy
-rm -f /var/lib/apt/lists/*
+rm -rf /var/lib/apt/lists/*
 
 # TODO: Un-divert and un-symlink /sbin/initctl.
 

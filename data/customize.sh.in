@@ -5,7 +5,7 @@
 
 set -e
 
-# This token will be replaced by the definitions of APT_PROXY_URL, USERNAME, IMAGE_FLAVOUR, and HOSTNAME_BASE taken from `vars`.
+# This token will be replaced by the definitions of the variables listed in CUSTOMIZE_VARS (see `bin/vars`).
 @SET_VARS@
 
 ############################################
@@ -24,9 +24,9 @@ APT_GET_INSTALL="$APT_GET install -y --no-install-recommends"
 ## Get apt ready to rock
 ############################################
 
-if test -n "${APT_PROXY_URL}"; then
+if test -n "${APT_PROXY}"; then
 cat >/etc/apt/apt.conf.d/80proxy <<EOF
-Acquire::http::Proxy "${APT_PROXY_URL}";
+Acquire::http::Proxy "${APT_PROXY}";
 EOF
 fi
 

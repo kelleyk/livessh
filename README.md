@@ -56,7 +56,7 @@ operating systems.
 
 ## Tips
 
-- Everything in `vars` is available to `pre-customize.d` scripts.  Only the variables coped into `customize.sh` by
+- Everything in `vars` is available to `pre-customize.d` scripts.  Only the variables copied into `customize.sh` by
   `bin/build-customized-environment.sh` are available to `customize.d` scripts.
 
 - Since host keys are regenerated on each boot, host key warnings will become annoying.  You may want to try

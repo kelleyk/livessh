@@ -39,6 +39,10 @@ export OUTPUT_ISO_PATH="${PWD}/../${IMAGE_NAME}.iso"
 ## Options used by data/customize.sh script (and available to customize.d/* scripts).
 #####################
 
+# Add additional variables with e.g.
+#   CUSTOMIZE_VARS+=(FOO BAR)
+declare -a CUSTOMIZE_VARS=(IMAGE_FLAVOUR HOSTNAME_BASE APT_PROXY USERNAME)
+
 # (APT_PROXY and USERNAME are also passed to customize.sh.)
 export IMAGE_FLAVOUR="ubuntu-livessh"
 export HOSTNAME_BASE="livessh"

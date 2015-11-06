@@ -17,9 +17,13 @@ mkdir -p "$ARTIFACTS_TMPDIR"
 rm -rf "$RESOURCES_TMPDIR"
 mkdir -p "$RESOURCES_TMPDIR"
 
-# Insert the values of these four variables.  (XXX: This is very messy and depends on our not having commas in the
+# Insert the values of these four variables.  (XXX: This is very messy and depends on our not having our sed delimiter in the
 # values of these variables.)
-sed -e "s,@SET_VARS@,APT_PROXY_URL=\"$APT_PROXY\"\nUSERNAME=\"$USERNAME\"\nIMAGE_FLAVOUR=\"$IMAGE_FLAVOUR\"\nHOSTNAME_BASE=\"$HOSTNAME_BASE\"\n,g" "${DATA_PATH}"/customize.sh.in > "$RESOURCES_TMPDIR"/customize.sh
+SET_VARS=""
+for VARNAME in "${CUSTOMIZE_VARS[@]}"; do
+    SET_VARS+="${VARNAME}=\"$(eval echo \$$VARNAME)\"\n"
+done
+sed -e "s|@SET_VARS@|$SET_VARS|g" "${DATA_PATH}"/customize.sh.in > "$RESOURCES_TMPDIR"/customize.sh
 chmod +x "$RESOURCES_TMPDIR"/customize.sh
 
 # TODO: Nothing from `vars` is available to these scripts.

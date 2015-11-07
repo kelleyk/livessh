@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ############################################
-## Enable serial console on ttyS0
+## Enable serial console(s) and virtual console(s)
 ############################################
 
 # You also need to edit the PXE configuration (and/or perhaps the ISOLINUX configuration) to get
@@ -17,12 +17,16 @@
 # TODO: XXX:
 #  - Just adding e.g. 'Requires' does not stop systemd from trying to start ttyS1 even if there's no second
 #    serial port (and so on).  This is because /dev/ttyS* are created even if no actual serial port exists.
-#  - The non-systemd branch of this is not up-to-date.  In particular, it doesn't support VIRTUAL_TERMINALS
-#    or --autologin at all.
 #  - Should make --autologin configurable.
 
 SERIAL_TERMINALS="ttyS0 ttyS1 hvc0"
 VIRTUAL_TERMINALS="tty1"
+TERMINAL_AUTOLOGIN_USER="${TERMINAL_AUTOLOGIN_USER-root}"
+
+GETTY_OPTS=""
+if test -n "${TERMINAL_AUTOLOGIN_USER}"; then
+    GETTY_OPTS+=" --autologin ${TERMINAL_AUTOLOGIN_USER}"
+fi
 
 if test x"$(readlink -f /sbin/init)" == x/lib/systemd/systemd; then
 
@@ -31,26 +35,23 @@ if test x"$(readlink -f /sbin/init)" == x/lib/systemd/systemd; then
 
     for TERMINAL_NAME in $SERIAL_TERMINALS; do
         cat /lib/systemd/system/serial-getty@.service |\
-            sed 's/^ExecStart=-\/sbin\/agetty /\0--autologin root /g' \
+            sed 's/^ExecStart=-\/sbin\/agetty /\0'"$GETTY_OPTS"' /g' \
                 >/etc/systemd/system/serial-getty@"$TERMINAL_NAME".service
         systemctl enable serial-getty@"$TERMINAL_NAME".service
     done
 
     for TERMINAL_NAME in $VIRTUAL_TERMINALS; do
         cat /lib/systemd/system/getty@.service |\
-            sed 's/^ExecStart=-\/sbin\/agetty /\0--autologin root /g' \
+            sed 's/^ExecStart=-\/sbin\/agetty /\0'"$GETTY_OPTS"' /g' \
                 >/etc/systemd/system/getty@"$TERMINAL_NAME".service
-        # echo "enable vt $TERMINAL_NAME"
-        ## @KK: Fails with "file exists".
-        # systemctl enable getty@"$TERMINAL_NAME".service        
-        # echo "enabled vt $TERMINAL_NAME"
     done
-
     
 else
-    
-for SERIAL_TERMINAL in $SERIAL_TERMINALS; do
-cat >>/etc/init/${SERIAL_TERMINAL}.conf <<EOF
+
+    # TODO: The non-systemd branch of this is not up-to-date.  In particular, it doesn't support VIRTUAL_TERMINALS
+    #       or --autologin at all.
+    for SERIAL_TERMINAL in $SERIAL_TERMINALS; do
+        cat >>/etc/init/${SERIAL_TERMINAL}.conf <<EOF
 # ${SERIAL_TERMINAL} - getty
 #
 # This service maintains a getty on ${SERIAL_TERMINAL} from the point the system is
@@ -62,6 +63,6 @@ stop on runlevel [!12345]
 respawn
 exec /sbin/getty -L 115200 ${SERIAL_TERMINAL} vt102
 EOF
-done
+    done
 
 fi

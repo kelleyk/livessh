@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# TODO: Could also put other dotfiles here.
+mkdir -p "${RESOURCES_TMPDIR}"/home/"${USERNAME}"/.ssh
+cp -a "${HOME}"/.ssh/authorized_keys "${RESOURCES_TMPDIR}"/home/"${USERNAME}"/.ssh/

@@ -1,10 +1,15 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# -*- mode: sh; coding: utf-8; -*-
 #
 #  Configuration sourced by other scripts.
 #
+#####################
 
-### XXX: These settings are currently duplicated at the top of data/customize.sh.
-
+# The variables named in this array will be passed into customize.sh and therefore be available to your customize.d scripts.
+# Add additional variables with e.g.
+#   CUSTOMIZE_VARS+=(FOO BAR)
+declare -a CUSTOMIZE_VARS=()
+    
 #####################
 ## Per-relese configuration
 #####################
@@ -25,34 +30,69 @@ export IMAGE_NAME="livessh-ubuntu15.10"  # volume name of .iso
 export APT_PROXY="http://192.168.0.1:3142"
 
 ####################
-## User configurables
+## User configurables: more interesting
 #####################
 
 export USERNAME=ubuntu
 export PASSWORD=ubuntu  # TODO: Currently not used.
-# export DOCKER_REPO_PATH="$PWD/../docker.git"
-export CONTAINER_NAME="tmp-livessh"
-export IMAGE_RELEASE_NOTES_URL="http://example.com"
+
 export LIVESSH_TIMEZONE="America/Los_Angeles"  # Should we use UTC instead?
+
+####################
+## User configurables: less interesting
+#####################
+
 export OUTPUT_ISO_PATH="${PWD}/../${IMAGE_NAME}.iso"
 
-#####################
-## Options used by data/customize.sh script (and available to customize.d/* scripts).
-#####################
-
-# Add additional variables with e.g.
-#   CUSTOMIZE_VARS+=(FOO BAR)
-declare -a CUSTOMIZE_VARS=(IMAGE_FLAVOUR HOSTNAME_BASE APT_PROXY USERNAME LIVESSH_TIMEZONE)
-
-# (APT_PROXY and USERNAME are also passed to customize.sh.)
-export IMAGE_FLAVOUR="ubuntu-livessh"
 export HOSTNAME_BASE="livessh"
 
-## TODO: Not yet supported.
-# export TERMINAL_AUTOLOGIN="root"
+# This Docker contaienr will be destroyed/recreated without warning as you run the build scripts.
+export CONTAINER_NAME="tmp-livessh"
+
+# Metadata required by Ubuntu's remixing system.
+export IMAGE_RELEASE_NOTES_URL="http://example.com"
+export IMAGE_FLAVOUR="ubuntu-livessh"
+
+# Controls which user is automatically logged in to the serial and virtual consoles.  Leave blank to disable autologin.
+# (You probably want autologin, though, because we are not properly setting the live user's password.)  You can set this
+# to "${USERNAME}" instead if you would rather that the terminals be logged in as the live user and not as root.
+CUSTOMIZE_VARS+=(TERMINAL_AUTOLOGIN_USER)
+export TERMINAL_AUTOLOGIN_USER="root"
 
 #####################
-## End of user-configurables
+## User configurables: for customization scripts
+#####################
+
+# N.B.:
+# - Make sure that you create the mount points!
+# - I strongly suggest that you use the 'nofail,nobootwait' mount options (at a minimum) so that the live image
+#   will boot smoothly even if the NFS volume is not available.
+export LIVESSH_FSTAB_ENTRIES="""
+192.168.0.1:/srv/nfs/scratch /mnt/scratch nfs rsize=8192,wsize=8192,timeo=14,intr,nofail,nobootwait 0 0
+"""
+
+#####################
+## (End of user-configurables.)
+#####################
+
+# These variables are used directly in customize.sh.
+CUSTOMIZE_VARS+=(IMAGE_FLAVOUR HOSTNAME_BASE APT_PROXY USERNAME)
+
+case "${RELEASE}" in
+    wily)
+        # LIVESSH_HOSTNAME_MODE controls what mechanism is used to set the hostname is set at boot.  "casper", the
+        # default value, works up through vivid (15.04) but does not work on wily (15.10).  The "systemd-unit" option
+        # sets the hostname to just "livessh" in the casper configuration and uses a oneshot unit to change it once
+        # networking has started.  This option should work on any systemd-based distribution of Ubuntu (vivid or later).
+        CUSTOMIZE_VARS+=(LIVESSH_HOSTNAME_MODE)
+        LIVESSH_HOSTNAME_MODE="systemd-unit"
+        ;;
+    *)
+        ;;
+esac
+
+#####################
+## Build paths
 #####################
 
 export BASE_PATH="${BASE_PATH-$PWD/../tmp/filesystem}"

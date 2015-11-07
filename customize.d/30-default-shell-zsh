@@ -8,3 +8,8 @@ $APT_GET_INSTALL zsh
 sed -i -r 's/^(DSHELL=)(.*)$/\1\/bin\/zsh/g' /etc/adduser.conf
 chsh -s /bin/zsh root
 chsh -s /bin/zsh "${USERNAME}"
+
+# Prevent the first-time setup prompt.
+touch "/home/${USERNAME}/.zshrc" && chown "${USERNAME}" "/home/${USERNAME}/.zshrc"
+touch "/root/.zshrc"  # Is this necessary?
+touch /etc/skel/.zshrc

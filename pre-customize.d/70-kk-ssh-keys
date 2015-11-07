@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-
-# Could also put other dotfiles here.
-# XXX: Hardwired kelleyk (source username).
-mkdir -p "${RESOURCES_TMPDIR}"/home/"${USERNAME}"/.ssh
-cp -a ~kelleyk/.ssh/authorized_keys "${RESOURCES_TMPDIR}"/home/"${USERNAME}"/.ssh/

@@ -13,19 +13,25 @@ operating systems.
 
 ## Todo
 
+- Most of the `customize.d` and `pre-customize.d` scripts are now configured entirely through `vars` and are not
+  specific to my environment.  Should move these somewhere else (`core.d`?) to make it easier for users to maintain
+  their own customizations on top of those configurable scripts.
+
 - Better documentation.
 
 - Better separation of the framework from my particular configuration.
 
-- TODO: Touch `~/.zshrc` to avoid the first-run configuration prompt.
-
 - `pre-customize.d/70-kk-ssh-keys` makes explicit reference to my username.
-
-- Better-document what the settings in `vars` do.
 
 - Automatically detect `APT_PROXY_URL`.
 
-- Have a more extensible mechanism for passing variables into `customize.d` scripts.
+- More systematic testing.
+
+- Support for older (e.g. pre-systemd) Ubuntu distributions has not been tested in a while, though I haven't
+  deliberately removed any code.
+
+- The live user's password is not actaully set to the value given in `vars`.  (This isn't a problem for me; I use SSH
+  keys, passwordless sudo, and automatically-logged-in consoles, but this should probably be fixed eventually.)
 
 ## Building
 
@@ -55,6 +61,8 @@ operating systems.
     configuration files into a temporary directory (`IMAGE_PATH`), and then builds an ISO from that directory.)
 
 ## Tips
+
+- The live user's home directory (i.e. `/home/$USERNAME`) does not exist when your `customize.d` scripts run.
 
 - Everything in `vars` is available to `pre-customize.d` scripts.  Only the variables copied into `customize.sh` by
   `bin/build-customized-environment.sh` are available to `customize.d` scripts.
@@ -89,6 +97,9 @@ you can use Zeroconf.
           commonly assigned to virtual network interfaces) are chosen only if others are not available.  If no hardware
           address can be detected, the machine's hostname will be set to "livessh".
 
+        - Only hardware addresses that are the same length as Ethernet hardware addresses are considered.  This may be a
+          problem if you are using e.g. Infiniband (which uses longer hardware addresses) instead of Ethernet.
+
     - Enables passwordless `sudo` access (which is important; see the note about setting the live user's password not working).
 
     - Sets time zone.
@@ -99,7 +110,7 @@ you can use Zeroconf.
 
     - Rebuilds the initramfs and the dpkg manifest.
 
-- `pre-customize.d/70-kk-ssh-keys`:
+- `pre-customize.d/70-ssh-keys`:
 
     - Bakes in SSH keys.  By default, pulls in your SSH keys (`~/.ssh/authorized_keys`).
 
@@ -109,7 +120,7 @@ you can use Zeroconf.
 
     - Prevents host keys from being baked into the image and adds a `systemd` unit that regenerates them at boot time.
 
-- `customize.d/20-serial-console`:
+- `customize.d/20-console`:
 
     - Provides automatically-logged-in consoles on
 
@@ -132,10 +143,16 @@ you can use Zeroconf.
 
     - `zsh` instead of `bash`
 
-- `customize.d/60-custom-nfs-mount`:
+- `customize.d/59-kk-nfs-mount`:
+
+    - (This is specific to my environment.)
 
     - Mounts an NFS volume from a particular hardwired location.  This volume is an easy place to stick scripts,
       utilities, notes, etc. without having to bake them into the image.
+
+- `customize.d/60-fstab-entries`:
+
+    - If set, adds a casper script that appends the contents of `LIVESSH_FSTAB_ENTRIES` to `/etc/fstab` at boot time.
 
 - `customize.d/65-custom-software`:
 
@@ -161,6 +178,10 @@ you can use Zeroconf.
 
 ## Manual testing checklist
 
+- If using libvirt/qemu/KVM to test, when you rebuild the ISO, you may need to actually power off and then start the VM
+  instead of simply resetting it.  Doing this causes the image to be closed and reopened; otherwise, the old file will
+  still be open and will continue to be used, so your changes won't appear.
+
 - Consoles
 
   - On the first virtual terminal (tty1), first two hardware serial consoles (ttyS0, ttyS1), and common virtual serial
@@ -169,6 +190,19 @@ you can use Zeroconf.
 
 - Shell
 
-  - If changing the default shell to /bin/zsh, check that we actually get zsh: from a prompt, ZSH_VERSION should be set
-    and BASH_VERSION should be unset.  You can also verify that tmp/filesytem/etc/{passwd,adduser.conf} contain
-    references to /bin/zsh instead of to /bin/bash.
+  - If changing the default shell to /bin/zsh:
+
+    - Check that we actually get zsh: from a prompt, ZSH_VERSION should be set
+      and BASH_VERSION should be unset.  You can also verify that tmp/filesytem/etc/{passwd,adduser.conf} contain
+      references to /bin/zsh instead of to /bin/bash.
+
+    - Check that, when you connect via SSH, you do not see the first-run configuration prompt.
+
+- `fstab` entries
+
+  - Make sure that the NFS volume at `/mnt/scratch` is mounted and that `/mnt/scratch/bin` is in `PATH`.  (This is
+    specific to my particular setup.)
+
+  - Make sure that the image boots without trouble if the NFS volume is not available.
+
+  - Check that no units/services have failed to start.

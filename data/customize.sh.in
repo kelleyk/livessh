@@ -98,14 +98,45 @@ chown -R "$USERNAME": /home/"$USERNAME"/
 ## Configure casper; try to set unique hostname based on MAC address
 ############################################
 
+# XXX: Code duplication between this script and /etc/casper.conf below.
+# XXX: We are just appending to /etc/hosts, so old hostnames will be left there.
+mkdir -p /opt/livessh/bin
+cat >>/opt/livessh/bin/set-hostname <<EOF
+#!/bin/bash
+
+export HOST="${HOSTNAME_BASE}"
+EOF
+cat >>/opt/livessh/bin/set-hostname <<'EOF'
+# The first unicast, globally-assigned Ethernet-size link-layer address.
+HWADDR="$(cat /sys/class/net/*/address | egrep '^[0-9a-f][048c](:[0-9a-f]{2}){5}$' | egrep -v '^00(:00){5}$' | sort -u | head -n 1)"
+# If none are available, try the first locally-assigned address.  (Maybe this is a VM.)
+if test -z "${HWADDR}"; then
+  HWADDR="$(cat /sys/class/net/*/address | egrep '^[0-9a-f][26ae](:[0-9a-f]{2}){5}$' | egrep -v '^00(:00){5}$' | sort -u | head -n 1)"
+fi
+# If we got an address, strip the colons and append it to our hostname.
+if test -n "${HWADDR}"; then
+  export HOST="${HOST}-$(echo $HWADDR | sed 's/://g')"
+fi
+
+hostname "${HOST}"
+echo "${HOST}" >/etc/hostname
+echo "127.0.1.1  ${HOST}" >>/etc/hosts
+EOF
+chmod +x /opt/livessh/bin/set-hostname
+
+
+case "${LIVESSH_HOSTNAME_MODE-casper}" in
+
+    casper)
+
 # N.B.: Quoting the limit string (EOF) prevents parameter substitution, effectively escaping all of
 # the $, `, and \ special characters that we want to write to casper.conf.  Ref.: http://tldp.org/LDP/abs/html/here-docs.html#HEREDOCREF
-cat >>/etc/casper.conf <<EOF
+        cat >>/etc/casper.conf <<EOF
 export FLAVOUR="${IMAGE_FLAVOUR}"
 export USERNAME="${USERNAME}"
 export HOST="${HOSTNAME_BASE}"
 EOF
-cat >>/etc/casper.conf <<'EOF'
+        cat >>/etc/casper.conf <<'EOF'
 # The first unicast, globally-assigned Ethernet-size link-layer address.
 HWADDR="$(cat /sys/class/net/*/address | egrep '^[0-9a-f][048c](:[0-9a-f]{2}){5}$' | egrep -v '^00(:00){5}$' | sort -u | head -n 1)"
 # If none are available, try the first locally-assigned address.  (Maybe this is a VM.)
@@ -117,6 +148,38 @@ if test -n "${HWADDR}"; then
   export HOST="${HOST}-$(echo $HWADDR | sed 's/://g')"
 fi
 EOF
+
+    ;;
+    systemd-unit)
+        
+        cat >>/etc/casper.conf <<EOF
+export FLAVOUR="${IMAGE_FLAVOUR}"
+export USERNAME="${USERNAME}"
+export HOST="${HOSTNAME_BASE}"
+EOF
+
+        cat >/etc/systemd/system/livessh-set-hostname.service <<EOF
+[Unit]
+Description=Set hostname based on hardware address
+After=networking.service
+Requires=networking.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/livessh/bin/set-hostname
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        systemctl enable livessh-set-hostname.service
+        
+    ;;
+    *)
+        echo "Unrecognized value for LIVESSH_HOSTNAME_MODE."
+        exit 1
+    ;;
+
+esac
 
 ############################################
 ## Timezone.

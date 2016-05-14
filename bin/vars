@@ -16,8 +16,10 @@ declare -a CUSTOMIZE_VARS=()
 
 # export RELEASE=vivid
 # export IMAGE_NAME="livessh-ubuntu15.04"  # volume name of .iso
-export RELEASE=wily
-export IMAGE_NAME="livessh-ubuntu15.10"  # volume name of .iso
+# export RELEASE=wily
+# export IMAGE_NAME="livessh-ubuntu15.10"  # volume name of .iso
+export RELEASE=xenial
+export IMAGE_NAME="livessh-ubuntu16.04"  # volume name of .iso
 
 ####################
 ## apt-proxy config

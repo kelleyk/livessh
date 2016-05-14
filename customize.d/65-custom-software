@@ -22,7 +22,7 @@ PACKAGES+=" emacs24-nox"
 
 PACKAGES+=" build-essential"
 
-PACKAGES+=" cryptsetup-bin"
+PACKAGES+=" cryptsetup-bin lvm2"
 PACKAGES+=" lsscsi ethtool"
 
 

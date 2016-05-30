@@ -25,5 +25,8 @@ PACKAGES+=" build-essential"
 PACKAGES+=" cryptsetup-bin lvm2"
 PACKAGES+=" lsscsi ethtool"
 
+# From 16.04LTS (Xenial) on, zfs is available in the Ubuntu repositories!
+PACKAGES+=" zfs-dkms zfsutils-linux zfs-initramfs"
+
 
 $APT_GET_INSTALL $PACKAGES

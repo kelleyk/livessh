@@ -18,8 +18,6 @@ PACKAGES+=" linux-image-extra-virtual"
 # ibstat, etc. -- should replace with Mellanox packages
 PACKAGES+=" infiniband-diags"
 
-PACKAGES+=" emacs24-nox"
-
 PACKAGES+=" build-essential"
 
 PACKAGES+=" cryptsetup-bin lvm2"

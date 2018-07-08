@@ -207,7 +207,6 @@ rm /etc/apt/apt.conf.d/docker-clean
 rm /etc/apt/apt.conf.d/docker-no-languages
 rm /etc/apt/apt.conf.d/docker-gzip-indexes  # without removing this, the livecd fails with an error about being unable to find index files
 rm etc/apt/apt.conf.d/docker-autoremove-suggests
-rm /etc/dpkg/dpkg.cfg.d/docker-apt-speedup
 
 ## XX: Does not restore /etc/apt/apt.conf.d/01autoremove-kernels
 
